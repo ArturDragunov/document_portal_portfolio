@@ -35,15 +35,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.get("/", response_class=HTMLResponse)
+# home page of our application is index.html. We are rendering it upon request.
+@app.get("/", response_class=HTMLResponse) # "/" defines the root URL. You visit it and you see index.html
 async def serve_ui(request: Request):
     log.info("Serving UI homepage.")
     resp = templates.TemplateResponse("index.html", {"request": request})
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
-@app.get("/health")
+@app.get("/health") # e.g. http://127.0.0.1:8080/health will give you health logs
 def health() -> Dict[str, str]:
     log.info("Health check passed.")
     return {"status": "ok", "service": "document-portal"}
@@ -54,6 +54,7 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
     try:
         log.info(f"Received file for analysis: {file.filename}")
         dh = DocHandler()
+        # We need FastAPIFileAdapter to reformat file for our save_pdf needs. 
         saved_path = dh.save_pdf(FastAPIFileAdapter(file))
         text = read_pdf_via_handler(dh, saved_path)
         analyzer = DocumentAnalyzer()
@@ -67,15 +68,15 @@ async def analyze_document(file: UploadFile = File(...)) -> Any:
         raise HTTPException(status_code=500, detail=f"Analysis failed: {e}")
 
 # ---------- COMPARE ----------
-@app.post("/compare")
+@app.post("/compare") # two files are allowed to be uploaded
 async def compare_documents(reference: UploadFile = File(...), actual: UploadFile = File(...)) -> Any:
     try:
         log.info(f"Comparing files: {reference.filename} vs {actual.filename}")
         dc = DocumentComparator()
-        ref_path, act_path = dc.save_uploaded_files(
+        _, _  = dc.save_uploaded_files( # we save copies of files under session
             FastAPIFileAdapter(reference), FastAPIFileAdapter(actual)
         )
-        _ = ref_path, act_path
+        # _ = ref_path, act_path
         combined_text = dc.combine_documents()
         comp = DocumentComparatorLLM()
         df = comp.compare_documents(combined_text)
@@ -90,8 +91,10 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
 # ---------- CHAT: INDEX ----------
 @app.post("/chat/index")
 async def chat_build_index(
-    files: List[UploadFile] = File(...),
+    files: List[UploadFile] = File(...), # many files can be uploaded!
     session_id: Optional[str] = Form(None),
+    # if session is true, we will build a new session in faiss_index and save pickle and index there
+    #Otherwise, we save pickle and index to a root location
     use_session_dirs: bool = Form(True),
     chunk_size: int = Form(1000),
     chunk_overlap: int = Form(200),
@@ -110,9 +113,9 @@ async def chat_build_index(
         )
         # NOTE: ensure your ChatIngestor saves with index_name="index" or FAISS_INDEX_NAME
         # e.g., if it calls FAISS.save_local(dir, index_name=FAISS_INDEX_NAME)
-        ci.built_retriver(  # if your method name is actually build_retriever, fix it there as well
+        ci.build_retriever(  # if your method name is actually build_retriever, fix it there as well
             wrapped, chunk_size=chunk_size, chunk_overlap=chunk_overlap, k=k
-        )
+        ) # these values are provided by a user in UI
         log.info(f"Index created successfully for session: {ci.session_id}")
         return {"session_id": ci.session_id, "k": k, "use_session_dirs": use_session_dirs}
     except HTTPException:

@@ -30,9 +30,9 @@ class FaissManager:
         
         if self.meta_path.exists():
             try:
-                self._meta = json.loads(self.meta_path.read_text(encoding="utf-8")) or {"rows": {}} # load it if alrady there
+                self._meta = json.loads(self.meta_path.read_text(encoding="utf-8")) or {"rows": {}} # load it if already there
             except Exception:
-                self._meta = {"rows": {}} # init the empty one if dones not exists
+                self._meta = {"rows": {}} # initialize the empty one if does not exist
         
 
         self.model_loader = model_loader or ModelLoader()
@@ -46,7 +46,7 @@ class FaissManager:
     def _fingerprint(text: str, md: Dict[str, Any]) -> str:
         src = md.get("source") or md.get("file_path")
         rid = md.get("row_id")
-        if src is not None:
+        if src is not None: # if data already exists
             return f"{src}::{'' if rid is None else rid}"
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
     
@@ -76,8 +76,8 @@ class FaissManager:
         return len(new_docs)
     
     def load_or_create(self,texts:Optional[List[str]]=None, metadatas: Optional[List[dict]] = None):
-        ## if we running first time then it will not go in this block
-        if self._exists():
+        ## if we running first time then it will not go in this block under if statement (does not exist!)
+        if self._exists(): # we check if index exists
             self.vs = FAISS.load_local(
                 str(self.index_dir),
                 embeddings=self.emb,
@@ -88,6 +88,7 @@ class FaissManager:
         
         if not texts:
             raise DocumentPortalException("No existing FAISS index and no data to create one", sys)
+        # if doesn't exist, then we create one (first time execution)
         self.vs = FAISS.from_texts(texts=texts, embedding=self.emb, metadatas=metadatas or [])
         self.vs.save_local(str(self.index_dir))
         return self.vs
@@ -135,7 +136,7 @@ class ChatIngestor:
         log.info("Documents split", chunks=len(chunks), chunk_size=chunk_size, overlap=chunk_overlap)
         return chunks
     
-    def built_retriver( self,
+    def build_retriever( self,
         uploaded_files: Iterable,
         *,
         chunk_size: int = 1000,
@@ -158,7 +159,7 @@ class ChatIngestor:
             try:
                 vs = fm.load_or_create(texts=texts, metadatas=metas)
             except Exception:
-                vs = fm.load_or_create(texts=texts, metadatas=metas)
+                raise ValueError('Failed to create index')
                 
             added = fm.add_documents(chunks)
             log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
