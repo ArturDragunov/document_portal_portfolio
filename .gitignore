@@ -22,7 +22,6 @@ faiss_index/
 
 # Data & archive
 data/
-archive/
 main_archive/
 *.pdf
 
