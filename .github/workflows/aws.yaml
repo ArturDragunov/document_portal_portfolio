@@ -1,12 +1,12 @@
-name: CI/CD to ECS Fargate
+name: CI/CD to ECS Fargate # we run the file in github CLI (command line interface)
 on:
   workflow_run:
     workflows: ["Run Unit Tests"]   # Match the name in your ci.yaml
     types:
       - completed
 env:
-  AWS_REGION: ap-southeast-2
-  ECR_REPOSITORY: documentportalliveclass
+  AWS_REGION: eu-north-1
+  ECR_REPOSITORY: artur_portfolio/document_portal
   ECS_SERVICE: document-portal-service
   ECS_CLUSTER: document-portal-cluster
   ECS_TASK_DEFINITION: .github/workflows/task_definition.json
@@ -82,6 +82,7 @@ jobs:
         id: render-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
+        # these two env vars we defined above
           task-definition: ${{ env.ECS_TASK_DEFINITION }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ needs.build-and-push.outputs.image }}
@@ -96,3 +97,4 @@ jobs:
           wait-for-service-stability: true
       - name: Done!
         run: echo "Deployed to ECS Fargate Successfully"
+        # echo means that we display the message -> like print()

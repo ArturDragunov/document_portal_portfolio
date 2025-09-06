@@ -1,12 +1,13 @@
 # .github/workflows/ci.yml
 name: Run Unit Tests
 
+# when we push the code or we merge a pull request - test cases will be executed
 on: [push, pull_request]
-
+# we define server, on which we run github actions
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
+    runs-on: ubuntu-latest # Linux machine for github actions
+    steps: # we checkout repo to the ubuntu machine and we set up python on it
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -20,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
-
+      # we specify the command (pytest tests/) to run unit tests
       - name: Run unit tests
         run: |
           pytest tests/
