@@ -36,16 +36,16 @@ COPY . .
 RUN uv pip install --system -e .
 
 # Remove after testing in local. Don't push to Docker Hub
-COPY .env .
+# COPY .env .
 
 # Expose port
 EXPOSE 8080
 
 # Run FastAPI with uvicorn -> we tell here, which folder and file to run to start the application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
+# CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
 # Replace last CMD in prod
-# CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
 
 # First CMD has --reload for development (auto-restarts on code changes)
 # Second CMD uses --workers 4 for production (multiple processes for better performance)
