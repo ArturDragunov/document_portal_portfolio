@@ -28,8 +28,8 @@
       ],
       "secrets": [
         {
-          "name": "arturportfolio",
-          "valueFrom": "arn:aws:secretsmanager:eu-north-1:326541255324:secret:arturportfolio-ThdOeo"
+          "name": "API_KEYS",
+          "valueFrom": "arn:aws:secretsmanager:eu-north-1:326541255324:secret:API_KEYS-7VLNrk"
         }
         
       ],

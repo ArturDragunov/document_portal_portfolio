@@ -10,10 +10,11 @@ from exception.custom_exception import DocumentPortalException
 
 
 class ApiKeyManager:
-    REQUIRED_KEYS = ["GROQ_API_KEY", "GOOGLE_API_KEY"]
+    REQUIRED_KEYS = ["GROQ_API_KEY", "GOOGLE_API_KEY"] # class attribute
 
     def __init__(self):
         self.api_keys = {}
+        # we try to fetch API keys env variable. AWS Secrets return only json format!
         raw = os.getenv("API_KEYS")
 
         if raw:
@@ -26,7 +27,7 @@ class ApiKeyManager:
             except Exception as e:
                 log.warning("Failed to parse API_KEYS as JSON", error=str(e))
 
-        # Fallback to individual env vars
+        # Fallback to individual env vars -> we are trying to fetch from local
         for key in self.REQUIRED_KEYS:
             if not self.api_keys.get(key):
                 env_val = os.getenv(key)
@@ -56,12 +57,16 @@ class ModelLoader:
     """
 
     def __init__(self):
+        # in task_definitions.json we defined one env variable as ENV = 'production'
+        # so we will load it if the code is executed in production because this env
+        # env variable will be created only in production.
         if os.getenv("ENV", "local").lower() != "production":
-            load_dotenv()
+            load_dotenv() # there is no .env file in prod, so it would fail
             log.info("Running in LOCAL mode: .env loaded")
         else:
             log.info("Running in PRODUCTION mode")
 
+        # we either fetch data from .env using load_dotenv or we take it from AWS Secrets
         self.api_key_mgr = ApiKeyManager()
         self.config = load_config()
         log.info("YAML config loaded", config_keys=list(self.config.keys()))

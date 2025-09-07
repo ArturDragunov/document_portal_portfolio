@@ -1,6 +1,6 @@
 name: CI/CD to ECS Fargate # we run the file in github CLI (command line interface)
 on:
-  workflow_run:
+  workflow_run: # we start only when "Run Unit Tests" workflow is completed
     workflows: ["Run Unit Tests"]   # Match the name in your ci.yaml
     types:
       - completed
@@ -17,8 +17,12 @@ permissions:
   contents: read
 
 jobs:
+  # -------------------------------
+  # 0. Check unit test status 
+  # -------------------------------
   check-status:
     runs-on: ubuntu-latest
+    # if we are pushing the changes into the main branch and if our previous pipeline is successful
     if: ${{github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'}}
     steps:
       - name: CI passed on main branch
@@ -29,7 +33,7 @@ jobs:
   # -------------------------------
   build-and-push:
     name: Build & Push Docker Image
-    needs: [check-status]
+    needs: [check-status] # to proceed to build-and-push we need check-status to be completed successfully
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.build-image.outputs.image }}
@@ -65,14 +69,14 @@ jobs:
   # -------------------------------
   deploy:
     name: Deploy to ECS Fargate
-    needs: build-and-push
+    needs: build-and-push # needs parameter creates interdependency between the jobs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4 # v1 is outdated
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

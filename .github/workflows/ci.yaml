@@ -1,7 +1,7 @@
 # .github/workflows/ci.yml
 name: Run Unit Tests
 
-# when we push the code or we merge a pull request - test cases will be executed
+# when we push the code or we merge a pull request TO ANY BRANCH - test cases will be executed
 on: [push, pull_request]
 # we define server, on which we run github actions
 jobs:
