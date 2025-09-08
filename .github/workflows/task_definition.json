@@ -3,13 +3,13 @@
   "networkMode": "awsvpc",
   "executionRoleArn": "arn:aws:iam::326541255324:role/ecsTaskExecutionRole",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "1024",
-  "memory": "8192",
+  "cpu": "512",
+  "memory": "2048",
   "containerDefinitions": [
     {
       "name": "document-portal-container",
       "image": "326541255324.dkr.ecr.eu-north-1.amazonaws.com/artur_portfolio/document_portal",
-      "cpu": 1024,
+      "cpu": 512,
       "essential": true,
       "portMappings": [
         {

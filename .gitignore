@@ -17,6 +17,7 @@ venv/
 
 # LangChain-related
 faiss_index/
+chroma_db/
 *.faiss
 *.pkl
 
