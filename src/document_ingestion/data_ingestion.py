@@ -142,11 +142,11 @@ class ChatIngestor:
         *,
         chunk_size: int = 1000,
         chunk_overlap: int = 200,
-        k: int = 5,):
+        k: int = 5,
+        enable_ocr: bool = False):
         try:
             paths = save_uploaded_files(uploaded_files, self.temp_dir)
-            docs = load_documents(paths, self.ocr_extractor)
-            # docs = load_documents(paths)
+            docs = load_documents(paths, self.ocr_extractor, enable_ocr=enable_ocr)
             if not docs:
                 raise ValueError("No valid documents loaded")
             

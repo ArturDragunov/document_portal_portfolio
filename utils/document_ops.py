@@ -16,8 +16,7 @@ from langchain_community.document_loaders import (
 )
 from hashlib import md5
 from utils.ocr_content_extractor import EmbeddedContentExtractor
-def load_documents(paths: Iterable[Path], ocr_extractor: "EmbeddedContentExtractor", enable_ocr: False) -> List[Document]:
-# def load_documents(paths: Iterable[Path]) -> List[Document]:
+def load_documents(paths: Iterable[Path], ocr_extractor: "EmbeddedContentExtractor", enable_ocr: bool = False) -> List[Document]:
     """Load text + OCR docs, ensuring no duplicates."""
     docs: List[Document] = []
     seen_hashes = set()

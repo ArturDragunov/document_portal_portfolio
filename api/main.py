@@ -110,6 +110,7 @@ async def chat_build_index(
     chunk_size: int = Form(1000),
     chunk_overlap: int = Form(200),
     k: int = Form(5),
+    enable_ocr: bool = Form(False)
 ) -> Any:
     try:
         log.info(f"Indexing chat session. Session ID: {session_id}, Files: {[f.filename for f in files]}")
@@ -125,7 +126,7 @@ async def chat_build_index(
         # NOTE: ensure your ChatIngestor saves with index_name="index" or FAISS_INDEX_NAME
         # e.g., if it calls FAISS.save_local(dir, index_name=FAISS_INDEX_NAME)
         ci.build_retriever(  # if your method name is actually build_retriever, fix it there as well
-            wrapped, chunk_size=chunk_size, chunk_overlap=chunk_overlap, k=k
+            wrapped, chunk_size=chunk_size, chunk_overlap=chunk_overlap, k=k, enable_ocr=enable_ocr
         ) # these values are provided by a user in UI
         log.info(f"Index created successfully for session: {ci.session_id}")
         return {"session_id": ci.session_id, "k": k, "use_session_dirs": use_session_dirs}

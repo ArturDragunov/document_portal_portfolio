@@ -121,6 +121,13 @@
                 <span class="slider"></span>
               </label>
             </div>
+            <div class="field toggle-row">
+              <label>Enable OCR (slow process)</label>
+              <label class="switch">
+                <input id="chat-enable-ocr" type="checkbox"  />
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
 
           <div class="actions">
@@ -239,6 +246,7 @@
     const files     = document.getElementById("chat-files").files;
     const sessionId = document.getElementById("chat-session").value.trim();
     const useSess   = document.getElementById("chat-sessionized").checked;
+    const enableOCR = document.getElementById("chat-enable-ocr").checked;
     const k         = +document.getElementById("chat-k").value || 5;
     const chunk     = +document.getElementById("chat-chunk").value || 1000;
     const overlap   = +document.getElementById("chat-overlap").value || 200;
@@ -256,7 +264,8 @@
       fd.append("chunk_size", String(chunk));
       fd.append("chunk_overlap", String(overlap));
       fd.append("k", String(k));
-
+      fd.append("enable_ocr", enableOCR ? "true" : "false");
+      
       const res = await fetch(`${API_BASE}/chat/index`, { method: "POST", body: fd });
       if (!res.ok) {
         const err = await res.json().catch(()=>({detail:res.statusText}));
@@ -264,8 +273,8 @@
       }
       const json = await res.json(); // { session_id, k, use_session_dirs }
       currentSession = json.session_id || sessionId || null;
-      meta.textContent = `Indexed. session=${currentSession || "(none)"}, k=${json.k}`;
-    } catch (e) {
+      meta.textContent = `Indexed. session=${currentSession || "(none)"}, k=${json.k}, ocr=${enableOCR}`;
+        } catch (e) {
       meta.textContent = "Indexing failed: " + (e.message || e);
     }
   });
