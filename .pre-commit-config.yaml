@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: .venv/Scripts/pytest.exe tests/  # Path to pytest in your virtual env (Windows)
+        language: system                  # Use the system environment
+        pass_filenames: false
+        always_run: true
