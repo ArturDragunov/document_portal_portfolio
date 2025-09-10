@@ -1,0 +1,1 @@
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt", ".ppt", ".md", ".xlsx", ".csv", ".jpeg", ".jpg", ".png"}

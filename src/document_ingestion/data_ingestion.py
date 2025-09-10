@@ -16,6 +16,7 @@ from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import DocumentPortalException
 from utils.file_io import generate_session_id, save_uploaded_files
 from utils.document_ops import load_documents, concat_for_analysis, concat_for_comparison
+from utils.ocr_content_extractor import EmbeddedContentExtractor
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
@@ -103,7 +104,7 @@ class ChatIngestor:
     ):
         try:
             self.model_loader = ModelLoader()
-            
+            self.ocr_extractor = EmbeddedContentExtractor()
             self.use_session = use_session_dirs
             self.session_id = session_id or generate_session_id()
             
@@ -144,7 +145,8 @@ class ChatIngestor:
         k: int = 5,):
         try:
             paths = save_uploaded_files(uploaded_files, self.temp_dir)
-            docs = load_documents(paths)
+            docs = load_documents(paths, self.ocr_extractor)
+            # docs = load_documents(paths)
             if not docs:
                 raise ValueError("No valid documents loaded")
             

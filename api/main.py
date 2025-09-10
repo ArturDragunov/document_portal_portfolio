@@ -1,4 +1,5 @@
 import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'
 from typing import List, Optional, Any, Dict
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -17,6 +18,16 @@ from src.document_compare.document_comparator import DocumentComparatorLLM
 from src.document_chat.retrieval import ConversationalRAG
 from utils.document_ops import FastAPIFileAdapter,read_pdf_via_handler
 from logger import GLOBAL_LOGGER as log
+
+from langchain_community.cache import SQLiteCache
+from langchain.globals import set_llm_cache
+
+# base dir = project root (two levels up from api/main.py)
+BASE_DIR = Path(__file__).resolve().parent.parent
+# point to data folder inside project root
+CACHE_DB_PATH = BASE_DIR / "data" / "llm_cache.db"
+# set global persistent cache
+set_llm_cache(SQLiteCache(database_path=str(CACHE_DB_PATH)))
 
 FAISS_BASE = os.getenv("FAISS_BASE", "faiss_index")
 UPLOAD_BASE = os.getenv("UPLOAD_BASE", "data")

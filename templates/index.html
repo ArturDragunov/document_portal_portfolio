@@ -85,12 +85,12 @@
     <section id="tab-chat" class="tab-panel">
       <div class="card">
         <h2>💬 Chat with your Documents</h2>
-        <p class="muted">Upload PDF/DOCX/TXT; we’ll index to FAISS and enable RAG chat.</p>
+        <p class="muted">Upload Documents; we’ll index to FAISS and enable RAG chat.</p>
 
         <form id="form-chat-index" class="form-grid" onsubmit="return false;">
           <div class="field">
             <label for="chat-files">Upload files</label>
-            <input id="chat-files" type="file" multiple accept=".pdf,.docx,.txt" />
+            <input id="chat-files" type="file" multiple accept=".pdf,.docx,.txt,.ppt,.md,.xlsx,.csv,.jpeg,.jpg,.png />
             <small class="help">You can select multiple files.</small>
           </div>
 
@@ -152,7 +152,6 @@
 
   <footer class="app-footer">
     <div>© Document Portal • Demo UI</div>
-    <div class="tiny">Frontend to FastAPI.</div>
   </footer>
 
   <script>

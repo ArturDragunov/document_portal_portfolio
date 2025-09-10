@@ -8,15 +8,15 @@ import uuid
 from typing import Iterable, List
 from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import DocumentPortalException
+from utils.supported_extensions import SUPPORTED_EXTENSIONS
 
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 # ----------------------------- #
 # Helpers (file I/O + loading)  #
 # ----------------------------- #
 def generate_session_id(prefix: str = "session") -> str:
-    ist = ZoneInfo("Asia/Kolkata")
-    return f"{prefix}_{datetime.now(ist).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    cet = ZoneInfo("Europe/Berlin")
+    return f"{prefix}_{datetime.now(cet).strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}"
 
 def save_uploaded_files(uploaded_files: Iterable, target_dir: Path) -> List[Path]:
     """Save uploaded files (Streamlit-like) and return local paths."""
