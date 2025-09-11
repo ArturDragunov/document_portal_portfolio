@@ -100,20 +100,12 @@
               <input id="chat-session" type="text" placeholder="Leave blank for auto session" />
             </div>
             <div class="field">
-              <label for="chat-chunk">Chunk size</label>
-              <input id="chat-chunk" type="number" value="1000" min="200" step="100" />
-            </div>
-            <div class="field">
-              <label for="chat-overlap">Chunk overlap</label>
-              <input id="chat-overlap" type="number" value="200" min="0" step="50" />
+              <label for="chat-k">Top-K</label>
+              <input id="chat-k" type="number" value="5" min="1" max="20" />
             </div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label for="chat-k">Top-K</label>
-              <input id="chat-k" type="number" value="5" min="1" max="20" />
-            </div>
             <div class="field toggle-row">
               <label>Use session-based FAISS</label>
               <label class="switch">
@@ -248,8 +240,6 @@
     const useSess   = document.getElementById("chat-sessionized").checked;
     const enableOCR = document.getElementById("chat-enable-ocr").checked;
     const k         = +document.getElementById("chat-k").value || 5;
-    const chunk     = +document.getElementById("chat-chunk").value || 1000;
-    const overlap   = +document.getElementById("chat-overlap").value || 200;
     const meta      = document.getElementById("chat-meta");
 
     if (!files.length) { meta.textContent = "Please upload at least one file."; return; }
@@ -261,8 +251,6 @@
       [...files].forEach(f => fd.append("files", f)); // <-- must be 'files'
       if (sessionId) fd.append("session_id", sessionId);
       fd.append("use_session_dirs", useSess ? "true" : "false");
-      fd.append("chunk_size", String(chunk));
-      fd.append("chunk_overlap", String(overlap));
       fd.append("k", String(k));
       fd.append("enable_ocr", enableOCR ? "true" : "false");
       

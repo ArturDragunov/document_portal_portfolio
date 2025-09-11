@@ -17,7 +17,7 @@ from exception.custom_exception import DocumentPortalException
 from utils.file_io import generate_session_id, save_uploaded_files
 from utils.document_ops import load_documents, concat_for_analysis, concat_for_comparison
 from utils.ocr_content_extractor import EmbeddedContentExtractor
-
+from langchain_experimental.text_splitter import SemanticChunker
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 # FAISS Manager (load-or-create)
@@ -131,17 +131,26 @@ class ChatIngestor:
             return d
         return base # fallback: "faiss_index/"
         
-    def _split(self, docs: List[Document], chunk_size=1000, chunk_overlap=200) -> List[Document]:
-        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    def _split(self, docs: List[Document], embedding_model, breakpoint_threshold_type="percentile") -> List[Document]:
+        """
+        Split documents into semantically meaningful chunks.
+
+        Args:
+            docs (List[Document]): Input documents to split.
+            embedding_model: Embedding model instance (e.g., OpenAIEmbeddings).
+            breakpoint_threshold_type (str): How to determine chunk breakpoints ("percentile" or "standard_deviation").
+
+        Returns:
+            List[Document]: List of semantically chunked documents.
+        """
+        splitter = SemanticChunker(embedding_model, breakpoint_threshold_type=breakpoint_threshold_type)
         chunks = splitter.split_documents(docs)
-        log.info("Documents split", chunks=len(chunks), chunk_size=chunk_size, overlap=chunk_overlap)
+        log.info("Documents split semantically", chunks=len(chunks), method="SemanticChunker", threshold=breakpoint_threshold_type)
         return chunks
     
     def build_retriever( self,
         uploaded_files: Iterable,
         *,
-        chunk_size: int = 1000,
-        chunk_overlap: int = 200,
         k: int = 5,
         enable_ocr: bool = False):
         try:
@@ -150,7 +159,7 @@ class ChatIngestor:
             if not docs:
                 raise ValueError("No valid documents loaded")
             
-            chunks = self._split(docs, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            chunks = self._split(docs, embedding_model=self.model_loader.load_embeddings())
             
             ## FAISS manager very very important class for the docchat
             fm = FaissManager(self.faiss_dir, self.model_loader)
