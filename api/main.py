@@ -50,7 +50,7 @@ app.add_middleware(
 @app.get("/", response_class=HTMLResponse) # "/" defines the root URL. You visit it and you see index.html
 async def serve_ui(request: Request):
     log.info("Serving UI homepage.")
-    resp = templates.TemplateResponse("index.html", {"request": request})
+    resp = templates.TemplateResponse(request, "index.html", {"request": request})
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
