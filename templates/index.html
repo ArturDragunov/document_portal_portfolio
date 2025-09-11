@@ -85,7 +85,19 @@
     <section id="tab-chat" class="tab-panel">
       <div class="card">
         <h2>💬 Chat with your Documents</h2>
-        <p class="muted">Upload Documents; we’ll index to FAISS and enable RAG chat.</p>
+        <p class="muted">
+          Upload documents; we'll index them to FAISS and enable RAG chat.
+        </p>
+
+        <div class="tiny" style="margin-bottom:12px; line-height:1.5;">
+          <strong>Quick guide:</strong>
+          <ul style="margin:6px 0 0 16px; padding:0; list-style:disc;">
+            <li><strong>Enable OCR</strong>: Extracts text from images (PDFs, PPTs, JPG/PNG). Uses an internal vision model — slow, but no external paid API.</li>
+            <li><strong>Session ID</strong>: Your own label (e.g. “projectA”). Reuse it later to keep building on the same index.</li>
+            <li><strong>Use session-based FAISS</strong>: When ON, data is stored/extended under your chosen Session ID. Combine with Session ID for personal databases.</li>
+            <li><strong>Top-K</strong>: Number of chunks retrieved (default 5). Higher = more context but more noise. Lower = focused but risk of missing info.</li>
+          </ul>
+        </div>
 
         <form id="form-chat-index" class="form-grid" onsubmit="return false;">
           <div class="field">
@@ -114,7 +126,7 @@
               </label>
             </div>
             <div class="field toggle-row">
-              <label>Enable OCR (slow process)</label>
+              <label>Enable OCR (slow)</label>
               <label class="switch">
                 <input id="chat-enable-ocr" type="checkbox"  />
                 <span class="slider"></span>
