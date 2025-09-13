@@ -25,4 +25,5 @@ pre-commit==4.3.0
 deepeval==3.4.8
 sqlalchemy==2.0.43
 camelot-py==1.0.9
+easyocr==1.7.2
 cfn-lint

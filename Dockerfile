@@ -21,19 +21,26 @@ WORKDIR /app
 # build-essential provides C compilers needed for some Python packages, poppler-utils for PDF processing
 RUN apt-get update && apt-get install -y build-essential poppler-utils && rm -rf /var/lib/apt/lists/*
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy requirements to container directory (.)
-COPY requirements.txt .
+# Copy dependency files first
+COPY pyproject.toml uv.lock ./
 
 # Install dependencies using uv. -e . install project as a local package
 # Prevents pip from storing downloaded packages locally, reducing image size
 # Docker caches each layer. If you only change code files (not requirements.txt),
 #  Docker reuses the cached dependency installation layer, making rebuilds much faster.
-RUN pip install uv && uv pip install --system --no-cache-dir -r requirements.txt
+RUN uv sync --frozen --no-dev
 
 # Copy project files (.) to container directory (.)
 COPY . .
 
-RUN uv pip install --system -e .
+# Remove any local .venv that might have been copied
+RUN rm -rf .venv
+
+# Install project in editable mode
+RUN uv sync --frozen
 
 # Remove after testing in local. Don't push to Docker Hub
 # COPY .env .
@@ -44,8 +51,9 @@ EXPOSE 8080
 # Run FastAPI with uvicorn -> we tell here, which folder and file to run to start the application
 # CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
-# Replace last CMD in prod
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
+
+# Use uv run instead of direct uvicorn
+CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "4"]
 
 # First CMD has --reload for development (auto-restarts on code changes)
 # Second CMD uses --workers 4 for production (multiple processes for better performance)
