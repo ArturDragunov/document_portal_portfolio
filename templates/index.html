@@ -85,12 +85,25 @@
     <section id="tab-chat" class="tab-panel">
       <div class="card">
         <h2>💬 Chat with your Documents</h2>
-        <p class="muted">Upload PDF/DOCX/TXT; we’ll index to FAISS and enable RAG chat.</p>
+        <p class="muted">
+          Upload documents; we'll index them to FAISS and enable RAG chat.
+        </p>
+
+        <div class="tiny" style="margin-bottom:12px; line-height:1.5;">
+          <strong>Quick guide:</strong>
+            <ul style="margin:6px 0 0 16px; padding:0; list-style:disc;">
+              <li><strong>Enable OCR</strong>: Extracts text from images (PDFs, PPTs, JPG/PNG). Uses an internal vision model — slow, but no external paid API is required. Button is switched OFF if <b>Load Index</b> is ON.</li>
+              <li><strong>Load Index</strong>: If you have previously created a FAISS index with a custom session ID, you can load and use it without rebuilding from scratch. No new files will be added to it, though...</li>
+              <li><strong>Session ID</strong>: Your own label (e.g., “projectA”). Reuse it later to continue building on the same index.</li>
+              <li><strong>Use Session-based FAISS</strong>: When ON, data is stored/extended under your chosen Session ID. Combine with Session ID to create personal databases. Button is switched OFF if <b>Load Index</b> is ON.</li>
+              <li><strong>Top-K</strong>: Number of chunks retrieved (default = 5). Higher = more context but more noise. Lower = more focused but with a risk of missing info.</li>
+            </ul>
+        </div>
 
         <form id="form-chat-index" class="form-grid" onsubmit="return false;">
           <div class="field">
             <label for="chat-files">Upload files</label>
-            <input id="chat-files" type="file" multiple accept=".pdf,.docx,.txt" />
+            <input id="chat-files" type="file" multiple accept=".pdf,.docx,.txt,.ppt,.md,.xlsx,.csv,.jpeg,.jpg,.png />
             <small class="help">You can select multiple files.</small>
           </div>
 
@@ -100,24 +113,30 @@
               <input id="chat-session" type="text" placeholder="Leave blank for auto session" />
             </div>
             <div class="field">
-              <label for="chat-chunk">Chunk size</label>
-              <input id="chat-chunk" type="number" value="1000" min="200" step="100" />
-            </div>
-            <div class="field">
-              <label for="chat-overlap">Chunk overlap</label>
-              <input id="chat-overlap" type="number" value="200" min="0" step="50" />
+              <label for="chat-k">Top-K</label>
+              <input id="chat-k" type="number" value="5" min="1" max="20" />
             </div>
           </div>
 
           <div class="grid-3">
-            <div class="field">
-              <label for="chat-k">Top-K</label>
-              <input id="chat-k" type="number" value="5" min="1" max="20" />
-            </div>
             <div class="field toggle-row">
               <label>Use session-based FAISS</label>
               <label class="switch">
                 <input id="chat-sessionized" type="checkbox" checked />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="field toggle-row">
+              <label>Enable OCR (slow)</label>
+              <label class="switch">
+                <input id="chat-enable-ocr" type="checkbox"  />
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="field toggle-row">
+              <label>Load Index</label>
+              <label class="switch">
+                <input id="chat-load-index" type="checkbox"  />
                 <span class="slider"></span>
               </label>
             </div>
@@ -152,7 +171,6 @@
 
   <footer class="app-footer">
     <div>© Document Portal • Demo UI</div>
-    <div class="tiny">Frontend to FastAPI.</div>
   </footer>
 
   <script>
@@ -236,41 +254,88 @@
   // ===== CHAT (index + ask) =====
   let currentSession = null;
 
-  document.getElementById("btn-build").addEventListener("click", async () => {
-    const files     = document.getElementById("chat-files").files;
-    const sessionId = document.getElementById("chat-session").value.trim();
-    const useSess   = document.getElementById("chat-sessionized").checked;
-    const k         = +document.getElementById("chat-k").value || 5;
-    const chunk     = +document.getElementById("chat-chunk").value || 1000;
-    const overlap   = +document.getElementById("chat-overlap").value || 200;
-    const meta      = document.getElementById("chat-meta");
+  const filesInput   = document.getElementById("chat-files");
+  const sessInput    = document.getElementById("chat-session");
+  const loadInput    = document.getElementById("chat-load-index");
+  const ocrInput     = document.getElementById("chat-enable-ocr");
+  const sessToggle   = document.getElementById("chat-sessionized");
+  const buildBtn     = document.getElementById("btn-build");
+  const meta         = document.getElementById("chat-meta");
 
-    if (!files.length) { meta.textContent = "Please upload at least one file."; return; }
+  function validateChatForm() {
+    const files     = filesInput.files;
+    const sessionId = sessInput.value.trim();
+    const loadIndex = loadInput.checked;
+
+    let valid = true;
+    let msg = "";
+
+    if (loadIndex) {
+      // Enforce the new rules
+      ocrInput.checked = false;       // Disable OCR
+      sessToggle.checked = true;      // Force session-based FAISS
+
+      if (!sessionId) {
+        valid = false;
+        msg = "Provide a Session ID when Load Index is ON. OCR will be OFF and session-based FAISS is ON.";
+      }
+      if (files.length > 0) {
+        valid = false;
+        msg = "Do not upload files when Load Index is ON. OCR will be OFF and session-based FAISS is ON";
+      }
+    } else {
+      if (!files.length) {
+        valid = false;
+        msg = "Upload at least one file when Load Index is OFF.";
+      }
+    }
+
+    buildBtn.disabled = !valid;
+    meta.textContent = valid ? "" : msg;
+  }
+
+  // Hook validation on input changes
+  filesInput.addEventListener("change", validateChatForm);
+  sessInput.addEventListener("input", validateChatForm);
+  loadInput.addEventListener("change", validateChatForm);
+  ocrInput.addEventListener("change", validateChatForm);
+  sessToggle.addEventListener("change", validateChatForm);
+
+  // Run once at startup
+  validateChatForm();
+
+  // ===== Build Index Event =====
+  document.getElementById("btn-build").addEventListener("click", async () => {
+    const files     = filesInput.files;
+    const sessionId = sessInput.value.trim();
+    const useSess   = sessToggle.checked;
+    const enableOCR = ocrInput.checked;
+    const loadIndex = loadInput.checked;
+    const k         = +document.getElementById("chat-k").value || 5;
 
     try {
       meta.textContent = "Building index…";
 
       const fd = new FormData();
-      [...files].forEach(f => fd.append("files", f)); // <-- must be 'files'
+      [...files].forEach(f => fd.append("files", f)); 
       if (sessionId) fd.append("session_id", sessionId);
       fd.append("use_session_dirs", useSess ? "true" : "false");
-      fd.append("chunk_size", String(chunk));
-      fd.append("chunk_overlap", String(overlap));
       fd.append("k", String(k));
+      fd.append("enable_ocr", enableOCR ? "true" : "false");
+      fd.append("load_index", loadIndex ? "true" : "false");
 
       const res = await fetch(`${API_BASE}/chat/index`, { method: "POST", body: fd });
       if (!res.ok) {
         const err = await res.json().catch(()=>({detail:res.statusText}));
         throw new Error(err.detail || `HTTP ${res.status}`);
       }
-      const json = await res.json(); // { session_id, k, use_session_dirs }
+      const json = await res.json();
       currentSession = json.session_id || sessionId || null;
-      meta.textContent = `Indexed. session=${currentSession || "(none)"}, k=${json.k}`;
+      meta.textContent = `Indexed. session=${currentSession || "(none)"}, k=${json.k}, ocr=${enableOCR}`;
     } catch (e) {
       meta.textContent = "Indexing failed: " + (e.message || e);
     }
   });
-
   document.getElementById("btn-ask").addEventListener("click", async () => {
     const q        = document.getElementById("chat-q").value.trim();
     const ans      = document.getElementById("chat-answer");
@@ -297,12 +362,12 @@
         const err = await res.json().catch(()=>({detail:res.statusText}));
         throw new Error(err.detail || `HTTP ${res.status}`);
       }
-      const json = await res.json(); // { answer, ... }
+      const json = await res.json();
       ans.textContent = json.answer || "No answer.";
     } catch (e) {
       ans.textContent = "Query failed: " + (e.message || e);
     }
-  });
+  });  
 </script>
 
 </body>

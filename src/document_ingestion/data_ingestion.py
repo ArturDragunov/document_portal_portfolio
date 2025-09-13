@@ -16,7 +16,8 @@ from logger import GLOBAL_LOGGER as log
 from exception.custom_exception import DocumentPortalException
 from utils.file_io import generate_session_id, save_uploaded_files
 from utils.document_ops import load_documents, concat_for_analysis, concat_for_comparison
-
+from utils.ocr_content_extractor import EmbeddedContentExtractor
+from langchain_experimental.text_splitter import SemanticChunker
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
 # FAISS Manager (load-or-create)
@@ -100,13 +101,15 @@ class ChatIngestor:
         faiss_base: str = "faiss_index",
         use_session_dirs: bool = True,
         session_id: Optional[str] = None,
+        load_existing_index: bool = False
     ):
         try:
             self.model_loader = ModelLoader()
-            
+            self.ocr_extractor = EmbeddedContentExtractor()
             self.use_session = use_session_dirs
             self.session_id = session_id or generate_session_id()
-            
+            self.load_existing_index = load_existing_index
+
             self.temp_base = Path(temp_base); self.temp_base.mkdir(parents=True, exist_ok=True)
             self.faiss_base = Path(faiss_base); self.faiss_base.mkdir(parents=True, exist_ok=True)
             
@@ -130,40 +133,52 @@ class ChatIngestor:
             return d
         return base # fallback: "faiss_index/"
         
-    def _split(self, docs: List[Document], chunk_size=1000, chunk_overlap=200) -> List[Document]:
-        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    def _split(self, docs: List[Document], embedding_model, breakpoint_threshold_type="percentile") -> List[Document]:
+        """
+        Split documents into semantically meaningful chunks.
+
+        Args:
+            docs (List[Document]): Input documents to split.
+            embedding_model: Embedding model instance (e.g., OpenAIEmbeddings).
+            breakpoint_threshold_type (str): How to determine chunk breakpoints ("percentile" or "standard_deviation").
+
+        Returns:
+            List[Document]: List of semantically chunked documents.
+        """
+        splitter = SemanticChunker(embedding_model, breakpoint_threshold_type=breakpoint_threshold_type)
         chunks = splitter.split_documents(docs)
-        log.info("Documents split", chunks=len(chunks), chunk_size=chunk_size, overlap=chunk_overlap)
+        log.info("Documents split semantically", chunks=len(chunks), method="SemanticChunker", threshold=breakpoint_threshold_type)
         return chunks
-    
+
     def build_retriever( self,
         uploaded_files: Iterable,
         *,
-        chunk_size: int = 1000,
-        chunk_overlap: int = 200,
-        k: int = 5,):
+        k: int = 5,
+        enable_ocr: bool = False):
         try:
-            paths = save_uploaded_files(uploaded_files, self.temp_dir)
-            docs = load_documents(paths)
-            if not docs:
-                raise ValueError("No valid documents loaded")
-            
-            chunks = self._split(docs, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-            
-            ## FAISS manager very very important class for the docchat
             fm = FaissManager(self.faiss_dir, self.model_loader)
-            
-            texts = [c.page_content for c in chunks]
-            metas = [c.metadata for c in chunks]
-            
-            try:
-                vs = fm.load_or_create(texts=texts, metadatas=metas)
-            except Exception:
-                raise ValueError('Failed to create index')
+            if not self.load_existing_index:
+                paths = save_uploaded_files(uploaded_files, self.temp_dir)
+                docs = load_documents(paths, self.ocr_extractor, enable_ocr=enable_ocr)
+                if not docs:
+                    raise ValueError("No valid documents loaded")
                 
-            added = fm.add_documents(chunks)
-            log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
-            
+                chunks = self._split(docs, embedding_model=self.model_loader.load_embeddings())
+                
+                ## FAISS manager
+                
+                texts = [c.page_content for c in chunks]
+                metas = [c.metadata for c in chunks]
+                
+                try:
+                    vs = fm.load_or_create(texts=texts, metadatas=metas)
+                except Exception:
+                    raise ValueError('Failed to create index')
+                    
+                added = fm.add_documents(chunks)
+                log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
+            else:
+                vs = fm.load_or_create()
             return vs.as_retriever(search_type="similarity", search_kwargs={"k": k})
             
         except Exception as e:

@@ -25,7 +25,7 @@ chroma_db/
 data/
 main_archive/
 *.pdf
-
+.deepeval
 # Secrets & configs
 .env
 .env.*
@@ -38,3 +38,6 @@ logs/
 dist/
 build/
 document_portal.egg-info/
+
+# Exceptions
+!deepeval_evaluation/sample.pdf

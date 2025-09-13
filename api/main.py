@@ -1,4 +1,5 @@
 import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'TRUE'  # Fix OpenMP conflict 
 from typing import List, Optional, Any, Dict
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -17,6 +18,18 @@ from src.document_compare.document_comparator import DocumentComparatorLLM
 from src.document_chat.retrieval import ConversationalRAG
 from utils.document_ops import FastAPIFileAdapter,read_pdf_via_handler
 from logger import GLOBAL_LOGGER as log
+
+from langchain_community.cache import SQLiteCache
+from langchain.globals import set_llm_cache
+
+# base dir = project root (two levels up from api/main.py)
+BASE_DIR = Path(__file__).resolve().parent.parent
+# point to data folder inside project root
+CACHE_DB_PATH = BASE_DIR / "data" / "llm_cache.db"
+# create folder if missing
+CACHE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+# set global persistent cache
+set_llm_cache(SQLiteCache(database_path=str(CACHE_DB_PATH)))
 
 FAISS_BASE = os.getenv("FAISS_BASE", "faiss_index")
 UPLOAD_BASE = os.getenv("UPLOAD_BASE", "data")
@@ -39,7 +52,7 @@ app.add_middleware(
 @app.get("/", response_class=HTMLResponse) # "/" defines the root URL. You visit it and you see index.html
 async def serve_ui(request: Request):
     log.info("Serving UI homepage.")
-    resp = templates.TemplateResponse("index.html", {"request": request})
+    resp = templates.TemplateResponse(request, "index.html", {"request": request})
     resp.headers["Cache-Control"] = "no-store"
     return resp
 
@@ -91,18 +104,37 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
 # ---------- CHAT: INDEX ----------
 @app.post("/chat/index")
 async def chat_build_index(
-    files: List[UploadFile] = File(...), # many files can be uploaded!
+    files: Optional[List[UploadFile]] = File(None), # many files can be uploaded!
     session_id: Optional[str] = Form(None),
     # if session is true, we will build a new session in faiss_index and save pickle and index there
     #Otherwise, we save pickle and index to a root location
     use_session_dirs: bool = Form(True),
-    chunk_size: int = Form(1000),
-    chunk_overlap: int = Form(200),
     k: int = Form(5),
+    enable_ocr: bool = Form(False),
+    load_index: bool = Form(False)
 ) -> Any:
     try:
-        log.info(f"Indexing chat session. Session ID: {session_id}, Files: {[f.filename for f in files]}")
-        wrapped = [FastAPIFileAdapter(f) for f in files]
+        wrapped = []
+        if load_index:
+            if files and len(files) > 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="If load_index is enabled, do not upload files"
+                )
+            if not session_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="When load_index is enabled, session_id must be provided"
+                )
+            log.info(f"Loading existing Index. Session ID: {session_id}.")
+        else:
+            if not files or len(files) == 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Files are required when load_index is disabled."
+                )
+            wrapped = [FastAPIFileAdapter(f) for f in files]
+            log.info(f"Indexing chat session. Session ID: {session_id}, Files: {[f.filename for f in files]}")
         # this is my main class for storing a data into VDB
         # created a object of ChatIngestor
         ci = ChatIngestor(
@@ -110,11 +142,12 @@ async def chat_build_index(
             faiss_base=FAISS_BASE,
             use_session_dirs=use_session_dirs,
             session_id=session_id or None,
+            load_existing_index=load_index
         )
         # NOTE: ensure your ChatIngestor saves with index_name="index" or FAISS_INDEX_NAME
         # e.g., if it calls FAISS.save_local(dir, index_name=FAISS_INDEX_NAME)
         ci.build_retriever(  # if your method name is actually build_retriever, fix it there as well
-            wrapped, chunk_size=chunk_size, chunk_overlap=chunk_overlap, k=k
+            wrapped, k=k, enable_ocr=enable_ocr
         ) # these values are provided by a user in UI
         log.info(f"Index created successfully for session: {ci.session_id}")
         return {"session_id": ci.session_id, "k": k, "use_session_dirs": use_session_dirs}

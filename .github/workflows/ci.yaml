@@ -9,19 +9,21 @@ jobs:
     runs-on: ubuntu-latest # Linux machine for github actions
     steps: # we checkout repo to the ubuntu machine and we set up python on it
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
 
       - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+        run: uv python install 3.10
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest
+        run: uv sync
       # we specify the command (pytest tests/) to run unit tests
       - name: Run unit tests
-        run: |
-          pytest tests/
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: uv run pytest tests/
