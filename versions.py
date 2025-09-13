@@ -18,7 +18,7 @@ packages = [
     "python-multipart",
     "docx2txt",
     "pypdf",
-    'camelot'
+    'camelot-py'
 ]
 for pkg in packages:
     try:
