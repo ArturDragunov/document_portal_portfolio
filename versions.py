@@ -17,7 +17,8 @@ packages = [
     "uvicorn",
     "python-multipart",
     "docx2txt",
-    "pypdf"
+    "pypdf",
+    'camelot'
 ]
 for pkg in packages:
     try:
