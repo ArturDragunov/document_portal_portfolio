@@ -26,6 +26,8 @@ from langchain.globals import set_llm_cache
 BASE_DIR = Path(__file__).resolve().parent.parent
 # point to data folder inside project root
 CACHE_DB_PATH = BASE_DIR / "data" / "llm_cache.db"
+# create folder if missing
+CACHE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 # set global persistent cache
 set_llm_cache(SQLiteCache(database_path=str(CACHE_DB_PATH)))
 
