@@ -102,17 +102,37 @@ async def compare_documents(reference: UploadFile = File(...), actual: UploadFil
 # ---------- CHAT: INDEX ----------
 @app.post("/chat/index")
 async def chat_build_index(
-    files: List[UploadFile] = File(...), # many files can be uploaded!
+    files: Optional[List[UploadFile]] = File(None), # many files can be uploaded!
     session_id: Optional[str] = Form(None),
     # if session is true, we will build a new session in faiss_index and save pickle and index there
     #Otherwise, we save pickle and index to a root location
     use_session_dirs: bool = Form(True),
     k: int = Form(5),
-    enable_ocr: bool = Form(False)
+    enable_ocr: bool = Form(False),
+    load_index: bool = Form(False)
 ) -> Any:
     try:
-        log.info(f"Indexing chat session. Session ID: {session_id}, Files: {[f.filename for f in files]}")
-        wrapped = [FastAPIFileAdapter(f) for f in files]
+        wrapped = []
+        if load_index:
+            if files and len(files) > 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="If load_index is enabled, do not upload files"
+                )
+            if not session_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="When load_index is enabled, session_id must be provided"
+                )
+            log.info(f"Loading existing Index. Session ID: {session_id}.")
+        else:
+            if not files or len(files) == 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Files are required when load_index is disabled."
+                )
+            wrapped = [FastAPIFileAdapter(f) for f in files]
+            log.info(f"Indexing chat session. Session ID: {session_id}, Files: {[f.filename for f in files]}")
         # this is my main class for storing a data into VDB
         # created a object of ChatIngestor
         ci = ChatIngestor(
@@ -120,6 +140,7 @@ async def chat_build_index(
             faiss_base=FAISS_BASE,
             use_session_dirs=use_session_dirs,
             session_id=session_id or None,
+            load_existing_index=load_index
         )
         # NOTE: ensure your ChatIngestor saves with index_name="index" or FAISS_INDEX_NAME
         # e.g., if it calls FAISS.save_local(dir, index_name=FAISS_INDEX_NAME)

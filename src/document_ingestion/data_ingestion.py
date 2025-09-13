@@ -101,13 +101,15 @@ class ChatIngestor:
         faiss_base: str = "faiss_index",
         use_session_dirs: bool = True,
         session_id: Optional[str] = None,
+        load_existing_index: bool = False
     ):
         try:
             self.model_loader = ModelLoader()
             self.ocr_extractor = EmbeddedContentExtractor()
             self.use_session = use_session_dirs
             self.session_id = session_id or generate_session_id()
-            
+            self.load_existing_index = load_existing_index
+
             self.temp_base = Path(temp_base); self.temp_base.mkdir(parents=True, exist_ok=True)
             self.faiss_base = Path(faiss_base); self.faiss_base.mkdir(parents=True, exist_ok=True)
             
@@ -147,34 +149,36 @@ class ChatIngestor:
         chunks = splitter.split_documents(docs)
         log.info("Documents split semantically", chunks=len(chunks), method="SemanticChunker", threshold=breakpoint_threshold_type)
         return chunks
-    
+
     def build_retriever( self,
         uploaded_files: Iterable,
         *,
         k: int = 5,
         enable_ocr: bool = False):
         try:
-            paths = save_uploaded_files(uploaded_files, self.temp_dir)
-            docs = load_documents(paths, self.ocr_extractor, enable_ocr=enable_ocr)
-            if not docs:
-                raise ValueError("No valid documents loaded")
-            
-            chunks = self._split(docs, embedding_model=self.model_loader.load_embeddings())
-            
-            ## FAISS manager very very important class for the docchat
             fm = FaissManager(self.faiss_dir, self.model_loader)
-            
-            texts = [c.page_content for c in chunks]
-            metas = [c.metadata for c in chunks]
-            
-            try:
-                vs = fm.load_or_create(texts=texts, metadatas=metas)
-            except Exception:
-                raise ValueError('Failed to create index')
+            if not self.load_existing_index:
+                paths = save_uploaded_files(uploaded_files, self.temp_dir)
+                docs = load_documents(paths, self.ocr_extractor, enable_ocr=enable_ocr)
+                if not docs:
+                    raise ValueError("No valid documents loaded")
                 
-            added = fm.add_documents(chunks)
-            log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
-            
+                chunks = self._split(docs, embedding_model=self.model_loader.load_embeddings())
+                
+                ## FAISS manager
+                
+                texts = [c.page_content for c in chunks]
+                metas = [c.metadata for c in chunks]
+                
+                try:
+                    vs = fm.load_or_create(texts=texts, metadatas=metas)
+                except Exception:
+                    raise ValueError('Failed to create index')
+                    
+                added = fm.add_documents(chunks)
+                log.info("FAISS index updated", added=added, index=str(self.faiss_dir))
+            else:
+                vs = fm.load_or_create()
             return vs.as_retriever(search_type="similarity", search_kwargs={"k": k})
             
         except Exception as e:
