@@ -1,0 +1,22 @@
+[
+  {
+    "input": "What BLEU score did the Transformer big model achieve on WMT 2014 English-to-German translation?",
+    "expected_output": "The Transformer big model achieved a BLEU score of 28.4 on the WMT 2014 English-to-German translation task, establishing a new state-of-the-art and outperforming the best previously reported models (including ensembles) by more than 2.0 BLEU."
+  },
+  {
+    "input": "What is the formula for Scaled Dot-Product Attention?",
+    "expected_output": "The formula for Scaled Dot-Product Attention is: Attention(Q, K, V) = softmax(QK^T / √d_k)V, where Q is queries, K is keys, V is values, and d_k is the dimension of the keys. The scaling factor 1/√d_k is used to counteract the effect of large dot products pushing the softmax function into regions with extremely small gradients."
+  },
+  {
+    "input": "How many layers does the Transformer encoder have and what are its main components?",
+    "expected_output": "The Transformer encoder is composed of a stack of N = 6 identical layers. Each layer has two sub-layers: first, a multi-head self-attention mechanism, and second, a simple position-wise fully connected feed-forward network. Residual connections are employed around each sub-layer, followed by layer normalization."
+  },
+  {
+    "input": "What are the three different ways the Transformer uses multi-head attention?",
+    "expected_output": "The Transformer uses multi-head attention in three ways: 1) In encoder-decoder attention layers, where queries come from the previous decoder layer and keys/values come from the encoder output, 2) In encoder self-attention layers, where all keys, values and queries come from the output of the previous encoder layer, and 3) In decoder self-attention layers, where each position can attend to all positions up to and including that position, with masking to preserve auto-regressive property."
+  },
+  {
+    "input": "What training setup and time was required for the Transformer models?",
+    "expected_output": "The models were trained on one machine with 8 NVIDIA P100 GPUs. The base models took about 0.4 seconds per training step and were trained for 100,000 steps (12 hours total). The big models took 1.0 seconds per step and were trained for 300,000 steps (3.5 days). The Adam optimizer was used with specific learning rate scheduling including a warmup of 4000 steps."
+  }
+]
