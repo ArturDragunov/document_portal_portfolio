@@ -23,4 +23,7 @@ jobs:
         run: uv sync
       # we specify the command (pytest tests/) to run unit tests
       - name: Run unit tests
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: uv run pytest tests/
