@@ -10,6 +10,8 @@ Return ONLY valid JSON matching the exact schema below.
 Analyze this document:
 {document_text}
 """)
+# format instruction is coming from the parser and combined docs is prepared by us in data_ingestion
+# (PDF texts are extracted and concatenated)
 
 # Prompt for document comparison
 document_comparison_prompt = ChatPromptTemplate.from_template("""

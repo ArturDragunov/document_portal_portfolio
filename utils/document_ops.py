@@ -102,6 +102,8 @@ def concat_for_comparison(ref_docs: List[Document], act_docs: List[Document]) ->
     return f"<<REFERENCE_DOCUMENTS>>\n{left}\n\n<<ACTUAL_DOCUMENTS>>\n{right}"
 
 # ---------- Helpers ----------
+# This code creates utilities for handling PDF file uploads in FastAPI
+# Class below converts FastAPI's UploadFile object into a format that mimics a file-like object with:
 class FastAPIFileAdapter:
     """Adapt FastAPI UploadFile -> .name + .getbuffer() API"""
     def __init__(self, uf: UploadFile):
