@@ -588,7 +588,7 @@ wheels = [
 ]
 
 [[package]]
-name = "document-portal"
+name = "document-portal-portfolio"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
@@ -627,7 +627,7 @@ requires-dist = [
     { name = "cfn-lint", specifier = ">=1.39.1" },
     { name = "deepeval", specifier = "==3.4.8" },
     { name = "docx2txt", specifier = "==0.9" },
-    { name = "easyocr", specifier = ">=1.7.2" },
+    { name = "easyocr", specifier = "==1.7.2" },
     { name = "faiss-cpu", specifier = "==1.11.0.post1" },
     { name = "fastapi", specifier = "==0.116.1" },
     { name = "ipykernel", specifier = "==6.30.0" },
@@ -2640,7 +2640,7 @@ wheels = [
 
 [[package]]
 name = "pydantic"
-version = "2.11.8"
+version = "2.11.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-types" },
@@ -2648,9 +2648,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ac/c0/1ff9b59cf6f54494cf3ae2b95f4e9cf3a4b10ca352dade98a94d30e8a62e/pydantic-2.11.8.tar.gz", hash = "sha256:3d080f4a3ac6bde98e959ba552124d46be9f565b7be67769e49fcb286bae1bfb", size = 788452, upload-time = "2025-09-13T01:39:32.577Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/5d/09a551ba512d7ca404d785072700d3f6727a02f6f3c24ecfd081c7cf0aa8/pydantic-2.11.9.tar.gz", hash = "sha256:6b8ffda597a14812a7975c90b82a8a2e777d9257aba3453f973acd3c032a18e2", size = 788495, upload-time = "2025-09-13T11:26:39.325Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/19/49/bdc01f684aff7070253fe32fb9c60788e70de6b8ec527eaebf96bdf1a76b/pydantic-2.11.8-py3-none-any.whl", hash = "sha256:830ec4cccc3cf21be1ef5aec1d3348a179c92a61a7dab0e59837f9cc9fa93351", size = 444830, upload-time = "2025-09-13T01:39:30.095Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/d3/108f2006987c58e76691d5ae5d200dd3e0f532cb4e5fa3560751c3a1feba/pydantic-2.11.9-py3-none-any.whl", hash = "sha256:c42dd626f5cfc1c6950ce6205ea58c93efa406da65f479dcb4029d5934857da2", size = 444855, upload-time = "2025-09-13T11:26:36.909Z" },
 ]
 
 [[package]]
@@ -4071,11 +4071,11 @@ wheels = [
 
 [[package]]
 name = "xlsxwriter"
-version = "3.2.6"
+version = "3.2.7"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5c/95/fc3f7321591f02547defe4307f885b6fc36ac9f31e1cbba7c536bf396657/xlsxwriter-3.2.6.tar.gz", hash = "sha256:0686a0293a38ef949136b908d1a3048a40f438be58aabf701c0724e0b41de75e", size = 215972, upload-time = "2025-09-12T19:25:05.117Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/35/ac541ffe99133d3475063f3ca3ca962f2bbd078e1430223090b918645d6d/xlsxwriter-3.2.7.tar.gz", hash = "sha256:c49825d3e010554be89a574cac68eebf6a8e4e354f65868ec3ede8fd0bd916aa", size = 216019, upload-time = "2025-09-13T18:23:30.731Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/26/3388f77ede6823c26b47d3e22f723a9c2ffb189b99b70d4445a2eaf83b8f/xlsxwriter-3.2.6-py3-none-any.whl", hash = "sha256:e793acff58c5026f24d7b83cbefbaf3a7da275b0273772f8f17b227a06d9bd95", size = 175435, upload-time = "2025-09-12T19:25:03.804Z" },
+    { url = "https://files.pythonhosted.org/packages/48/13/77d89889b2c5a20c85f5637d34c1cee6d805e5501bd27dd53bbe33e29664/xlsxwriter-3.2.7-py3-none-any.whl", hash = "sha256:26026162f4e477837dbcb2a23f5247772ea7d22df2f63169a3e8d061c7abb46b", size = 175467, upload-time = "2025-09-13T18:23:29.088Z" },
 ]
 
 [[package]]
