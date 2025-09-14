@@ -22,11 +22,11 @@ WORKDIR /build
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies to a specific location
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev && uv cache clean
 
 # Copy source code and install project
 COPY . .
-RUN uv sync --frozen
+RUN uv sync --frozen && uv cache clean
 
 # Stage 2: Runtime stage - minimal image with only runtime dependencies
 FROM python:3.10-slim AS runtime
@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y \
   libxrender-dev \
   libgomp1 \
   libgthread-2.0-0 \
-  && rm -rf /var/lib/apt/lists/*
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app

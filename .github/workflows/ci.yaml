@@ -6,7 +6,7 @@ on: [push, pull_request]
 # we define server, on which we run github actions
 jobs:
   test:
-    runs-on: ubuntu-latest # Linux machine for github actions
+    runs-on: ubuntu-latest-8-cores # Linux machine for github actions
     steps: # we checkout repo to the ubuntu machine and we set up python on it
       - name: Checkout repo
         uses: actions/checkout@v4
