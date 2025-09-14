@@ -3,6 +3,9 @@
   "networkMode": "awsvpc",
   "executionRoleArn": "arn:aws:iam::326541255324:role/ecsTaskExecutionRole",
   "requiresCompatibilities": ["FARGATE"],
+  "ephemeralStorage": {
+  "sizeInGiB": 100
+  },
   "cpu": "2048",
   "memory": "8192",
   "containerDefinitions": [
