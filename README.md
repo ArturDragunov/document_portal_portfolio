@@ -1,69 +1,91 @@
-# Project Setup Guide
+# Document Portal
 
-## Create Project Folder and Environment Setup
+**Document Portal** is a production-ready FastAPI application for document ingestion, analysis, and conversational interaction with files. It supports:
+
+* **Analysis** – extract content and metadata from uploaded PDFs
+* **Compare** – perform **LLM-based page-by-page comparison** between two documents
+* **Chat** – upload documents, embed them into a FAISS index, and run **conversational RAG queries** with support for tables (Camelot) and images (EZOCR)
+
+The project is fully containerized and deployed with **AWS ECS (Fargate)**, **ECR**, and **CI/CD pipelines via GitHub Actions**. It includes **unit/integration testing**, logging, and secure secret management.
+
+---
+
+## 🚀 Features
+
+* Modular **FastAPI backend** with OOP architecture
+* Document analysis, comparison, and chat with LLMs
+* Table extraction and OCR
+* Vector database powered by **FAISS**
+* **DeepEval** integration for RAG evaluation
+* CI/CD with GitHub Actions → AWS ECR → ECS (Fargate)
+* Logging & monitoring with **CloudWatch**
+* Secrets & credentials handled via **AWS Secrets Manager** and **IAM**
+
+---
+
+## 🛠️ Tech Stack
+
+* **Backend**: FastAPI, Python
+* **Data/AI**: LangChain, FAISS, Camelot, EasyOCR
+* **Testing**: Pytest (unit + integration), DeepEval
+* **DevOps**: Docker, GitHub Actions, AWS ECS (Fargate), AWS ECR, CloudWatch, IAM, Secrets Manager
+* **Others**: Modular OOP design, custom exception handling, logging & data archiving
+
+---
+
+## ⚡ Quickstart
+
+### Prerequisites
+
+* Python 3.10+
+* [uv](https://github.com/astral-sh/uv) package manager
+* Docker (for containerized deployment)
+* API keys:
+
+  * [Groq](https://console.groq.com/keys)
+  * [Gemini](https://ai.google.dev/gemini-api/docs/models)
+  
+### Setup
 
 ```bash
-# Create a new project folder
-mkdir <project_folder_name>
+# Sync environment from pyproject.toml
+uv sync
 
-# Move into the project folder
-cd <project_folder_name>
-
-# Open the folder in VS Code
-code .
-
-# Create a new Conda environment with Python 3.10
-conda create -p <env_name> python=3.10 -y
-
-# Activate the environment (use full path to the environment)
-conda activate <path_of_the_env>
-
-# Install dependencies from requirements.txt
-pip install -r requirements.txt
-
-# Initialize Git
-git init
-
-# Stage all files
-git add .
-
-# Commit changes
-git commit -m "<write your commit message>"
-
-# Push to remote (after adding remote origin)
-git push
-
-# Cloning the repository
-git clone https://github.com/sunnysavita10/document_portal.git
+# Run the FastAPI app
+uvicorn api.main:app --host 0.0.0.0 --port 8080 --reload
 ```
-## Minimum Requirements for the Project
 
-### LLM Models
-- **Groq** (Free)
-- **OpenAI** (Paid)
-- **Gemini** (15 Days Free Access)
-- **Claude** (Paid)
-- **Hugging Face** (Free)
-- **Ollama** (Local Setup)
+---
 
-### Embedding Models
-- **OpenAI**
-- **Hugging Face**
-- **Gemini**
+## 📡 API Endpoints
 
-### Vector Databases
-- **In-Memory**
-- **On-Disk**
-- **Cloud-Based**
+* `POST /analyze` – analyze a single PDF (metadata + content)
+* `POST /compare` – compare two PDFs page by page using LLM
+* `POST /chat/index` – create FAISS index from uploaded files (with OCR support)
+* `POST /chat/query` – query the indexed documents with conversational RAG
+* `GET /health` – service health check
 
-## API Keys
+---
 
-### GROQ API Key
-- [Get your API Key](https://console.groq.com/keys)  
-- [Groq Documentation](https://console.groq.com/docs/overview)
+## 🧪 Testing
 
-### Gemini API Key
-- [Get your API Key](https://aistudio.google.com/apikey)  
-- [Gemini Documentation](https://ai.google.dev/gemini-api/docs/models)
+```bash
+pytest tests/
+```
 
+Includes **unit tests and integration tests**.
 
+---
+
+## 📦 Deployment
+
+* CI/CD with **GitHub Actions** runs tests → builds Docker image → pushes to **AWS ECR**
+* Image deployed to **AWS ECS (Fargate)** with public endpoint
+* Logs available via **AWS CloudWatch**
+
+---
+
+## 📖 Demo
+
+Download document-portal-demo.mp4 or aend me a message for a live-project link: artur.dragunov.career@gmail.com
+---
