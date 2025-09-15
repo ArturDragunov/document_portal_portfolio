@@ -87,5 +87,5 @@ Includes **unit tests and integration tests**.
 
 ## 📖 Demo
 
-Download document-portal-demo.mp4 or aend me a message for a live-project link: artur.dragunov.career@gmail.com
+Download document-portal-demo.mp4 or send me a message for a live-project link: artur.dragunov.career@gmail.com
 ---
