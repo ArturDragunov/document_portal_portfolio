@@ -87,7 +87,5 @@ Includes **unit tests and integration tests**.
 
 ## 📖 Demo
 
-<video src="document-portal-demo.mp4" width="700" autoplay loop muted controls></video>
-
-Send me a message for a live-project link: artur.dragunov.career@gmail.com
+Download document-portal-demo.mp4 or aend me a message for a live-project link: artur.dragunov.career@gmail.com
 ---
