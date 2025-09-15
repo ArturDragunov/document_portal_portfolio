@@ -1,5 +1,3 @@
----
-
 # Document Portal
 
 **Document Portal** is a production-ready FastAPI application for document ingestion, analysis, and conversational interaction with files. It supports:
